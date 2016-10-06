@@ -50,7 +50,7 @@ def parse_tracks(tracks, artist_id):
 def load_from_spotify(artist_id):
     artist_uri = 'spotify:artist:' + artist_id
     try:
-        results = spotify.artist_albums(artist_uri)
+        results = spotify.artist_albums(artist_uri, country='US', limit=50)
     except spotipy.client.SpotifyException:
         raise BadRequestError("Invalid artist_id: %s" % (artist_id))
     albums = results['items']
@@ -60,10 +60,13 @@ def load_from_spotify(artist_id):
         albums.extend(results['items'])
     tracks = []
     for album in albums:
-        results = spotify.album_tracks(album['id'])
+        results = spotify.album(album['id'] + '/tracks?market=US&limit=50')
         for i in range(len(results['items'])):
             results['items'][i]['album_name'] = album['name']
-            results['items'][i]['album_art'] = album['images'][-1]['url']
+            if len(album['images']) > 0:
+                results['items'][i]['album_art'] = album['images'][-1]['url']
+            else:
+                results['items'][i]['album_art'] = ''
         tracks.extend(results['items'])
         while results['next']:
             results = spotify.next(results)
