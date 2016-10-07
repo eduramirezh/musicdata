@@ -1,0 +1,21 @@
+{
+  "name": "frontend",
+  "description": "",
+  "main": "",
+  "authors": [
+    "Edu <ejramire@uc.cl>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/eduramirezh/tempo-analysis",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "chart.js": "^2.3.0"
+  }
+}
