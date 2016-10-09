@@ -35,20 +35,27 @@
     <!--
     <link rel="canonical" href="http://www.example.com/">
     -->
+    <link rel="stylesheet" href="scripts/vendor/jquery-ui/themes/smoothness/jquery-ui.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+
   </head>
   <body>
     <!-- Add your site or app content here -->
     <section id="search">
       <h2>Searchbar</h2>
+      <input type="text" class="text-box" placeholder="Enter Artist" id="artist-input">
     </section>
-    <section>
+    <section id="results">
       <h2>Chart</h2>
-      <canvas id="myChart" width="400" height="400"></canvas>
+      <div id="chartContainer">
+      <canvas id="myChart"></canvas>
+      </div>
     </section>
 
 
     <!-- build:js scripts/main.min.js -->
-    <script src="scripts/load_sample.js"></script>
+    <script src="scripts/vendor/jquery/dist/jquery.min.js"></script>
+    <script src="scripts/vendor/jquery-ui/jquery-ui.min.js"></script>
     <script src="scripts/vendor/chart.js/dist/Chart.min.js"></script>
     <script src="scripts/generate_chart.js"></script>
     <script src="scripts/main.js"></script>
