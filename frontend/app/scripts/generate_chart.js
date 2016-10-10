@@ -89,9 +89,15 @@ function loadChart(tracks) {
           display: false
         }],
         yAxes: [{
-          display: false,
+          display: true,
           ticks: {
-            beginAtZero: true
+            beginAtZero: true,
+            fixedStepSize: 60000,
+            callback: function(value, index, values) {
+              return millisToMinutesAndSeconds(value);
+            }
+          },
+          scaleLabel: {
           }
         }]
       }

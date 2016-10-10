@@ -3,7 +3,6 @@
 }
 #results {
   overflow-x: scroll;
-  height: 500px;
 }
 #resultsContainer {
   position: absolute;
