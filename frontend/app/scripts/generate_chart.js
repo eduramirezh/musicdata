@@ -6,40 +6,41 @@ function millisToMinutesAndSeconds(millis) {
 
 function getAlbumsHash(items) {
   var albumsHash = {};
-  var album_name;
+  var albumName;
   var counter = 0;
-  for(var i = 0; i < items.length;i++){
-    album_name = items[i].album_name;
-    if(!(album_name in albumsHash)) {
+  for (var i = 0; i < items.length; i++) {
+    albumName = items[i].album_name;
+    if (!(albumName in albumsHash)) {
       counter++;
-      albumsHash[album_name] = '';
+      albumsHash[albumName] = '';
     }
   }
   var index = 0;
-  for(key in albumsHash){
-    albumsHash[key] = 'hsl(' + (360 * index / counter) + ', 100%, 50%)';
-    index++;
+  for (var key in albumsHash) {
+    if (albumsHash.hasOwnProperty(key)) {
+      albumsHash[key] = 'hsl(' + Math.floor(360 * index / counter) + ', 100%, 50%)';
+      index++;
+    }
   }
   return albumsHash;
 }
 
-
 function getBarColorsByAlbum(items) {
   var albumsHash = getAlbumsHash(items);
   var colors = [];
-  for(var i = 0; i < items.length; i++){
+  for (var i = 0; i < items.length; i++) {
     colors.push(albumsHash[items[i].album_name]);
   }
   return colors;
 }
 
-
 function resetCanvas() {
-  $('#myChart').remove();
-  $('#chartContainer').append('<canvas id="myChart"><canvas>');
+  $('#results').remove();
+  $('#resultsContainer').append('<div id="results"><h2>Tracks sorted by duration</h2><div id="chartContainer"><canvas id="myChart"></canvas></div></div>');
 }
 
 function getData(artistId) {
+  $('body').append('<div class="big-spinner"></div>');
   $.ajax({
     type: 'GET',
     url: 'https://5wnsefqb0a.execute-api.us-east-1.amazonaws.com/dev/artist/' + artistId,
@@ -48,12 +49,14 @@ function getData(artistId) {
     },
     success: function(data) {
       loadChart(data);
+      $('.big-spinner').remove();
     }
   });
 }
 
 function loadChart(tracks) {
   resetCanvas();
+  $('#chartContainer').css('width', tracks.tracks.length * 20 + 'px');
   var ctx = document.getElementById('myChart');
   var myChart = new Chart(ctx, {
     type: 'bar',
@@ -66,14 +69,17 @@ function loadChart(tracks) {
         backgroundColor: getBarColorsByAlbum(tracks.tracks),
         data: tracks.tracks.map(function(d) {
           return d.duration;
-        }),
-        borderWidth: 1
+        })
       }]
     },
     options: {
+      maintainAspectRatio: false,
+      legend: {
+        display: false
+      },
       tooltips: {
         callbacks: {
-          label: function(tooltipItem, data) {
+          label: function(tooltipItem) {
             return millisToMinutesAndSeconds(tooltipItem.yLabel);
           }
         }
@@ -83,25 +89,31 @@ function loadChart(tracks) {
           display: false
         }],
         yAxes: [{
+          display: false,
           ticks: {
-            beginAtZero:true
+            beginAtZero: true
           }
         }]
       }
     }
   });
+  return myChart;
 }
 
 $(document).ready(function() {
   $('#artist-input').autocomplete({
     source: function(request, response) {
+      var query = request.term;
+      if (request.term.indexOf('-') < 0) {
+        query += '*';
+      }
       $.ajax({
         type: 'GET',
         url: 'https://api.spotify.com/v1/search',
         dataType: 'json',
         data: {
           type: 'artist',
-          q: request.term
+          q: query
         },
         success: function(data) {
           response($.map(data.artists.items, function(item) {

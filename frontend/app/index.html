@@ -35,20 +35,19 @@
     <!--
     <link rel="canonical" href="http://www.example.com/">
     -->
-    <link rel="stylesheet" href="scripts/vendor/jquery-ui/themes/smoothness/jquery-ui.min.css">
+    <link rel="stylesheet" href="styles/jquery-ui.min.css">
+    <link rel="stylesheet" href="styles/smoothness.css">
     <link rel="stylesheet" href="styles/main.css">
 
   </head>
   <body>
     <!-- Add your site or app content here -->
     <section id="search">
-      <h2>Searchbar</h2>
+      <h2>Look for a band or singer's name</h2>
       <input type="text" class="text-box" placeholder="Enter Artist" id="artist-input">
     </section>
-    <section id="results">
-      <h2>Chart</h2>
-      <div id="chartContainer">
-      <canvas id="myChart"></canvas>
+    <section id="resultsContainer">
+      <div id="results">
       </div>
     </section>
 
@@ -58,7 +57,6 @@
     <script src="scripts/vendor/jquery-ui/jquery-ui.min.js"></script>
     <script src="scripts/vendor/chart.js/dist/Chart.min.js"></script>
     <script src="scripts/generate_chart.js"></script>
-    <script src="scripts/main.js"></script>
     <!-- endbuild -->
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
     <script>

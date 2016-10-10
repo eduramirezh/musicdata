@@ -33,39 +33,41 @@ import swPrecache from 'sw-precache';
 import gulpLoadPlugins from 'gulp-load-plugins';
 import {output as pagespeed} from 'psi';
 import pkg from './package.json';
+import AWS from 'aws-sdk';
+import awspublish from 'gulp-awspublish';
 
 const $ = gulpLoadPlugins();
 const reload = browserSync.reload;
 
 // Lint JavaScript
 gulp.task('lint', () =>
-  gulp.src(['app/scripts/**/*.js', '!app/scripts/vendor/**/*'])
-    .pipe($.eslint())
-    .pipe($.eslint.format())
-    .pipe($.if(!browserSync.active, $.eslint.failOnError()))
+    gulp.src(['app/scripts/**/*.js', '!app/scripts/vendor/**/*'])
+  .pipe($.eslint())
+  .pipe($.eslint.format())
+  .pipe($.if(!browserSync.active, $.eslint.failOnError()))
 );
 
 // Optimize images
 gulp.task('images', () =>
-  gulp.src('app/images/**/*')
-    .pipe($.cache($.imagemin({
-      progressive: true,
-      interlaced: true
-    })))
-    .pipe(gulp.dest('dist/images'))
-    .pipe($.size({title: 'images'}))
+    gulp.src('app/images/**/*')
+  .pipe($.cache($.imagemin({
+    progressive: true,
+    interlaced: true
+  })))
+  .pipe(gulp.dest('dist/images'))
+  .pipe($.size({title: 'images'}))
 );
 
 // Copy all files at the root level (app)
 gulp.task('copy', () =>
-  gulp.src([
-    'app/*',
-    '!app/*.html',
-    'node_modules/apache-server-configs/dist/.htaccess'
-  ], {
-    dot: true
-  }).pipe(gulp.dest('dist'))
-    .pipe($.size({title: 'copy'}))
+    gulp.src([
+      'app/*',
+      '!app/*.html',
+      'node_modules/apache-server-configs/dist/.htaccess'
+    ], {
+      dot: true
+    }).pipe(gulp.dest('dist'))
+  .pipe($.size({title: 'copy'}))
 );
 
 // Compile and automatically prefix stylesheets
@@ -94,7 +96,7 @@ gulp.task('styles', () => {
     }).on('error', $.sass.logError))
     .pipe($.autoprefixer(AUTOPREFIXER_BROWSERS))
     .pipe(gulp.dest('.tmp/styles'))
-    // Concatenate and minify styles
+  // Concatenate and minify styles
     .pipe($.if('*.css', $.cssnano()))
     .pipe($.size({title: 'styles'}))
     .pipe($.sourcemaps.write('./'))
@@ -109,20 +111,22 @@ gulp.task('scripts', () =>
       // Note: Since we are not using useref in the scripts build pipeline,
       //       you need to explicitly list your scripts here in the right order
       //       to be correctly concatenated
-      './app/scripts/main.js'
-      // Other scripts
+      './app/scripts/vendor/jquery/dist/jquery.min.js',
+      './app/scripts/vendor/jquery-ui/jquery-ui.min.js',
+      './app/scripts/vendor/chart.js/dist/Chart.min.js',
+      './app/scripts/generate_chart.js'
     ])
-      .pipe($.newer('.tmp/scripts'))
-      .pipe($.sourcemaps.init())
-      .pipe($.babel())
-      .pipe($.sourcemaps.write())
-      .pipe(gulp.dest('.tmp/scripts'))
-      .pipe($.concat('main.min.js'))
-      .pipe($.uglify({preserveComments: 'some'}))
-      // Output files
-      .pipe($.size({title: 'scripts'}))
-      .pipe($.sourcemaps.write('.'))
-      .pipe(gulp.dest('dist/scripts'))
+  .pipe($.newer('.tmp/scripts'))
+  .pipe($.sourcemaps.init())
+  .pipe($.babel())
+  .pipe($.sourcemaps.write())
+  .pipe(gulp.dest('.tmp/scripts'))
+  .pipe($.concat('main.min.js'))
+  .pipe($.uglify({preserveComments: 'some'}))
+  // Output files
+  .pipe($.size({title: 'scripts'}))
+  .pipe($.sourcemaps.write('.'))
+  .pipe(gulp.dest('dist/scripts'))
 );
 
 // Scan your HTML for assets & optimize them
@@ -133,7 +137,7 @@ gulp.task('html', () => {
       noAssets: true
     }))
 
-    // Minify any HTML
+  // Minify any HTML
     .pipe($.if('*.html', $.htmlmin({
       removeComments: true,
       collapseWhitespace: true,
@@ -145,7 +149,7 @@ gulp.task('html', () => {
       removeStyleLinkTypeAttributes: true,
       removeOptionalTags: true
     })))
-    // Output files
+  // Output files
     .pipe($.if('*.html', $.size({title: 'html', showFiles: true})))
     .pipe(gulp.dest('dist'));
 });
@@ -177,39 +181,39 @@ gulp.task('serve', ['scripts', 'styles'], () => {
 
 // Build and serve the output from the dist build
 gulp.task('serve:dist', ['default'], () =>
-  browserSync({
-    notify: false,
-    logPrefix: 'WSK',
-    // Allow scroll syncing across breakpoints
-    scrollElementMapping: ['main', '.mdl-layout'],
-    // Run as an https by uncommenting 'https: true'
-    // Note: this uses an unsigned certificate which on first access
-    //       will present a certificate warning in the browser.
-    // https: true,
-    server: 'dist',
-    port: 3001
-  })
+    browserSync({
+      notify: false,
+      logPrefix: 'WSK',
+      // Allow scroll syncing across breakpoints
+      scrollElementMapping: ['main', '.mdl-layout'],
+      // Run as an https by uncommenting 'https: true'
+      // Note: this uses an unsigned certificate which on first access
+      //       will present a certificate warning in the browser.
+      // https: true,
+      server: 'dist',
+      port: 3001
+    })
 );
 
 // Build production files, the default task
 gulp.task('default', ['clean'], cb =>
-  runSequence(
-    'styles',
-    ['lint', 'html', 'scripts', 'images', 'copy'],
-    'generate-service-worker',
-    cb
-  )
+    runSequence(
+      'styles',
+      ['lint', 'html', 'scripts', 'images', 'copy'],
+      'generate-service-worker',
+      cb
+    )
 );
 
 // Run PageSpeed Insights
 gulp.task('pagespeed', cb =>
-  // Update the below URL to the public URL of your site
-  pagespeed('example.com', {
-    strategy: 'mobile'
-    // By default we use the PageSpeed Insights free (no API key) tier.
-    // Use a Google Developer API key if you have one: http://goo.gl/RkN0vE
-    // key: 'YOUR_API_KEY'
-  }, cb)
+    // Update the below URL to the public URL of your site
+    pagespeed('example.com', {
+      strategy: 'mobile'
+      // By default we use the PageSpeed Insights free (no API key) tier.
+      // Use a Google Developer API key if you have one: http://goo.gl/RkN0vE
+      // key: 'YOUR_API_KEY'
+    }, cb)
 );
 
 // Copy over the scripts that are used in importScripts as part of the generate-service-worker task.
@@ -247,6 +251,21 @@ gulp.task('generate-service-worker', ['copy-sw-scripts'], () => {
     // glob always use '/'.
     stripPrefix: rootDir + '/'
   });
+});
+
+gulp.task('publish', function() {
+  var publisher = awspublish.create({
+    region: 'us-east-1',
+    params: {
+      Bucket: 'songsdata.eduramirez.com'
+    }
+  });
+
+  return gulp.src('./dist/**')
+    .pipe(awspublish.gzip())
+    .pipe(publisher.publish())
+    .pipe(publisher.cache())
+    .pipe(awspublish.reporter());
 });
 
 // Load custom tasks from the `tasks` directory
