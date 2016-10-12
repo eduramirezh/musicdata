@@ -3,6 +3,71 @@ function millisToMinutesAndSeconds(millis) {
   var seconds = ((millis % 60000) / 1000).toFixed(0);
   return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
+var defaultDataParser = function(tracks, attribute) {
+  return tracks.tracks.map(function(track) {
+    return Number(track[attribute]);
+  });
+};
+
+var defaultTooltipLabel = function(tooltipItem) {
+  return tooltipItem.yLabel;
+};
+
+var generators = {
+  duration: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'duration');
+    },
+    tooltipLabel: function(tooltipItem) {
+      var value = tooltipItem.yLabel || tooltipItem;
+      return millisToMinutesAndSeconds(value);
+    }
+  },
+  energy: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'energy');
+    },
+    label: defaultTooltipLabel
+  },
+  danceability: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'danceability');
+    },
+    label: defaultTooltipLabel
+  },
+  tempo: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'tempo');
+    },
+    label: defaultTooltipLabel
+  },
+  acousticness: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'acousticness');
+    },
+    label: defaultTooltipLabel
+  }
+};
+
+var artistData = {};
+
+function getFeatures(artistId, selectedAttribute) {
+  $('#search h2').append('<div class="big-spinner"></div>');
+  $.ajax({
+    type: 'GET',
+    url: 'https://5wnsefqb0a.execute-api.us-east-1.amazonaws.com/dev/artist/' + artistId + '/audio-features',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    success: function(data) {
+      artistData = data;
+      $('.big-spinner').remove();
+      loadChart(artistData, selectedAttribute);
+    }
+  });
+}
+
+
 
 function getAlbumsHash(items) {
   var albumsHash = {};
@@ -40,7 +105,7 @@ function resetCanvas() {
 }
 
 function getData(artistId) {
-  $('body').append('<div class="big-spinner"></div>');
+  $('#search h2').append('<div class="big-spinner"></div>');
   $.ajax({
     type: 'GET',
     url: 'https://5wnsefqb0a.execute-api.us-east-1.amazonaws.com/dev/artist/' + artistId,
@@ -48,13 +113,14 @@ function getData(artistId) {
       'Content-Type': 'application/json'
     },
     success: function(data) {
-      loadChart(data);
+      artistData = data
+      loadChart(artistData, 'duration');
       $('.big-spinner').remove();
     }
   });
 }
 
-function loadChart(tracks) {
+function loadChart(tracks, attributeName) {
   resetCanvas();
   $('#chartContainer').css('width', tracks.tracks.length * 20 + 'px');
   var ctx = document.getElementById('myChart');
@@ -65,11 +131,9 @@ function loadChart(tracks) {
         return d.track_name;
       }),
       datasets: [{
-        label: 'Songs duration',
+        label: 'Songs' + attributeName,
         backgroundColor: getBarColorsByAlbum(tracks.tracks),
-        data: tracks.tracks.map(function(d) {
-          return d.duration;
-        })
+        data: generators[attributeName].data(tracks)
       }]
     },
     options: {
@@ -79,9 +143,7 @@ function loadChart(tracks) {
       },
       tooltips: {
         callbacks: {
-          label: function(tooltipItem) {
-            return millisToMinutesAndSeconds(tooltipItem.yLabel);
-          }
+          label: generators[attributeName].tooltipLabel
         }
       },
       scales: {
@@ -93,11 +155,7 @@ function loadChart(tracks) {
           ticks: {
             beginAtZero: true,
             fixedStepSize: 60000,
-            callback: function(value, index, values) {
-              return millisToMinutesAndSeconds(value);
-            }
-          },
-          scaleLabel: {
+            callback:generators[attributeName].tooltipLabel
           }
         }]
       }

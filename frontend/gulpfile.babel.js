@@ -263,7 +263,7 @@ gulp.task('publish', function() {
 
   return gulp.src('./dist/**')
     .pipe(awspublish.gzip())
-    .pipe(publisher.publish())
+    .pipe(publisher.publish({}, {/*force: true*/}))
     .pipe(publisher.cache())
     .pipe(awspublish.reporter());
 });

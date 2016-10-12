@@ -9,12 +9,12 @@
   height: 500px;
 }
 .ui-autocomplete-loading {
-  background:url('images/ui-anim_basic_16x16.gif') no-repeat right center;
+  background:url('/images/ui-anim_basic_16x16.gif') no-repeat right center;
 }
 
 .big-spinner{
   height: 20px;
   display:block;
-  background:url('images/big_spinner.gif') no-repeat right center;
+  background:url('/images/ui-anim_basic_16x16.gif') no-repeat right center;
 }
 

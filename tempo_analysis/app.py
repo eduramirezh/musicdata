@@ -1,13 +1,33 @@
 from chalice import Chalice
 from chalice import BadRequestError
+from decimal import Decimal
 import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 
 app = Chalice(app_name='tempo_analysis')
-spotify = spotipy.Spotify()
+app.debug = True
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('Tracks')
+token = u'BQAttjXdNTLnYtJW7U8paJGGOm5Da47NARYfRRakk9MBbfRkYVvWCF9lmsJif56JNOz3fulSgACr78yP9TB7QO_ia77cdXkdZvjcFBU3R21QsFPkcXsxVVTWN1Qrz1HYGJuVEZjQ3Hro50EW'
+scc = SpotifyClientCredentials(client_id='1e4f79dce8f342aa81a17b2f69244e82',
+                               client_secret='58b29455ebff42f2b650ae9713c13fc5')
+spotify = spotipy.Spotify(client_credentials_manager=scc)
+
+def batch_iteration(iterable, n=1):
+    l = len(iterable)
+    for ndx in range(0, l, n):
+        yield iterable[ndx:min(ndx + n, l)]
+
+def _sanitize(tracks):
+    for i in range(len(tracks)):
+        track = tracks[i]
+        for key in track:
+            if isinstance(track[key], (float, int, long, complex)):
+                tracks[i][key] = str(track[key])
+    return tracks
+
 
 def load_from_db(artist_id):
     db_results = table.query(
@@ -77,13 +97,35 @@ def load_from_spotify(artist_id):
     response = parse_tracks(tracks, artist_id)
     return response
 
+def load_features_from_spotify(tracks):
+    results = []
+    for tracks_batch in batch_iteration(tracks, 100):
+        ids = [track['track_id'] for track in tracks_batch]
+        results.extend(spotify.audio_features(ids))
+    return results
+
 
 def save(tracks):
     with table.batch_writer() as batch:
         for track in tracks:
             batch.put_item(Item=track)
 
-@app.route('/artist/{artist_id}')
+def update(tracks, features):
+    for i in range(len(tracks)):
+        track = tracks[i]
+        feature = {}
+        for feat in features:
+            if feat['id'] == track['track_id']:
+                feature = feat
+                break
+        track.update(feature)
+        tracks[i] = track
+    tracks = _sanitize(tracks)
+    with table.batch_writer() as batch:
+        for track in tracks:
+            batch.put_item(Item=track)
+
+@app.route('/artist/{artist_id}', cors=True)
 def index(artist_id):
     tracks = load_from_db(artist_id)
     if not tracks:
@@ -92,3 +134,13 @@ def index(artist_id):
         tracks = load_from_db(artist_id)
     return {'tracks': tracks}
 
+@app.route('/artist/{artist_id}/audio-features', cors=True)
+def audio_features(artist_id):
+    tracks = load_from_db(artist_id)
+    if not tracks:
+        return {'error': 'Artist not loaded'}
+    elif 'energy' not in tracks[0]:
+        features = load_features_from_spotify(tracks)
+        update(tracks, features)
+        tracks = load_from_db(artist_id)
+    return {'tracks': tracks}
