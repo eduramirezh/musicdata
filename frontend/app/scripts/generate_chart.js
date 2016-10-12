@@ -206,7 +206,8 @@ function getBarColorsByAlbum(items) {
 
 function resetCanvas() {
   $('#results').remove();
-  $('#resultsContainer').append('<div id="results"><h2>Tracks sorted by duration</h2><div id="chartContainer"><canvas id="myChart"></canvas></div></div>');
+  $('#resultsContainer').append('<div id="results"><h2>Tracks sorted by <span id="attributeTitle"></span></h2><div id="chartContainer"><canvas id="myChart"></canvas></div></div>');
+  $('#attributeSelection').css('display', 'block')
 }
 
 function getData(artistId) {
@@ -238,6 +239,7 @@ function loadChart(tracks, attributeName) {
   resetCanvas();
   tracks.tracks = defaultSorter(tracks.tracks, attributeName);
   $('#chartContainer').css('width', Math.max(tracks.tracks.length * 20, 200) + 'px');
+  $('#attributeTitle').text(attributeName);
   var ctx = document.getElementById('myChart');
   var myChart = new Chart(ctx, {
     type: 'bar',

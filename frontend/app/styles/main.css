@@ -5,7 +5,7 @@
   overflow-x: scroll;
 }
 #resultsContainer {
-  position: absolute;
+  /*position: absolute;*/
   height: 500px;
 }
 .ui-autocomplete-loading {
@@ -18,3 +18,27 @@
   background:url('/images/ui-anim_basic_16x16.gif') no-repeat right center;
 }
 
+#attributeSelection {
+  display: none;
+}
+
+#attributeSelection ul {
+    list-style-type: none;
+    margin-top: 80px;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333333;
+    float: bottom;
+}
+
+#attributeSelection li {
+    float: left;
+}
+
+#attributeSelection li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 16px;
+    text-decoration: none;
+}
