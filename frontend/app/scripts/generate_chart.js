@@ -4,9 +4,23 @@ function millisToMinutesAndSeconds(millis) {
   return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
 
+var pitchClass = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
 var defaultDataParser = function(tracks, attribute) {
   return tracks.tracks.map(function(track) {
     return Number(track[attribute]);
+  });
+};
+
+var keyDataParser = function(tracks) {
+  return tracks.tracks.map(function(track) {
+    return Number(track.key) + 1;
+  });
+};
+
+var modeDataParser = function(tracks) {
+  return tracks.tracks.map(function(track) {
+    return Number(track.mode) + 1;
   });
 };
 
@@ -33,34 +47,110 @@ var generators = {
       return defaultDataParser(tracks, 'duration');
     },
     tooltipLabel: function(tooltipItem) {
-      var value = tooltipItem.yLabel || tooltipItem;
+      return millisToMinutesAndSeconds(tooltipItem.yLabel);
+    },
+    ticksCallback: function(value) {
       return millisToMinutesAndSeconds(value);
-    }
+    },
+    fixedStepSize: 60000
   },
   energy: {
     data: function(tracks) {
       return defaultDataParser(tracks, 'energy');
     },
     tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return Math.round(a * 10) / 10;},
+    fixedStepSize: 0.1
+  },
+  speechiness: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'speechiness');
+    },
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return Math.round(a * 10) / 10;},
+    fixedStepSize: 0.1
+  },
+  acousticness: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'acousticness');
+    },
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return Math.round(a * 10) / 10;},
     fixedStepSize: 0.1
   },
   danceability: {
     data: function(tracks) {
       return defaultDataParser(tracks, 'danceability');
     },
-    label: defaultTooltipLabel
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return Math.round(a * 10) / 10;},
+    fixedStepSize: 0.1
   },
   tempo: {
     data: function(tracks) {
       return defaultDataParser(tracks, 'tempo');
     },
-    label: defaultTooltipLabel
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return a;},
+    fixedStepSize: 10
   },
-  acousticness: {
+  instrumentalness: {
     data: function(tracks) {
-      return defaultDataParser(tracks, 'acousticness');
+      return defaultDataParser(tracks, 'instrumentalness');
     },
-    label: defaultTooltipLabel
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return Math.round(a * 10) / 10;},
+    fixedStepSize: 0.1
+  },
+  key: {
+    data: function(tracks) {
+      return keyDataParser(tracks);
+    },
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return pitchClass[a-1];},
+    fixedStepSize: 1
+  },
+  liveness: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'liveness');
+    },
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return Math.round(a * 10) / 10;},
+    fixedStepSize: 0.1
+  },
+  mode: {
+    data: function(tracks) {
+      return modeDataParser(tracks);
+    },
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){
+      return a == 1 ? 'Minor' : 'Major';
+    },
+    fixedStepSize: 1
+  },
+  time_signature: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'time_signature');
+    },
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return a + '/4';},
+    fixedStepSize: 1
+  },
+  loudness: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'loudness');
+    },
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return a;},
+    fixedStepSize: 10
+  },
+  valence: {
+    data: function(tracks) {
+      return defaultDataParser(tracks, 'valence');
+    },
+    tooltipLabel: defaultTooltipLabel,
+    ticksCallback: function(a){return Math.round(a * 10) / 10;},
+    fixedStepSize: 0.1
   }
 };
 
@@ -147,7 +237,7 @@ function loadAttributesChart(attributeName) {
 function loadChart(tracks, attributeName) {
   resetCanvas();
   tracks.tracks = defaultSorter(tracks.tracks, attributeName);
-  $('#chartContainer').css('width', tracks.tracks.length * 20 + 'px');
+  $('#chartContainer').css('width', Math.max(tracks.tracks.length * 20, 200) + 'px');
   var ctx = document.getElementById('myChart');
   var myChart = new Chart(ctx, {
     type: 'bar',
@@ -180,7 +270,7 @@ function loadChart(tracks, attributeName) {
           ticks: {
             beginAtZero: true,
             fixedStepSize: generators[attributeName].fixedStepSize,
-            callback: generators[attributeName].tooltipLabel
+            callback: generators[attributeName].ticksCallback
           }
         }]
       }
