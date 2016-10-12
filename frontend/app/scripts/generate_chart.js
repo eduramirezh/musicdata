@@ -3,11 +3,25 @@ function millisToMinutesAndSeconds(millis) {
   var seconds = ((millis % 60000) / 1000).toFixed(0);
   return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
+
 var defaultDataParser = function(tracks, attribute) {
   return tracks.tracks.map(function(track) {
     return Number(track[attribute]);
   });
 };
+
+function defaultSorter(tracks, attributeName){
+  tracks.sort(function(a, b){
+    var numberA = Number(a[attributeName]);
+    var numberB = Number(b[attributeName]);
+    if (numberA < numberB)
+      return -1;
+    if (numberA > numberB)
+      return 1;
+    return 0;
+  })
+  return tracks;
+}
 
 var defaultTooltipLabel = function(tooltipItem) {
   return tooltipItem.yLabel;
@@ -27,7 +41,8 @@ var generators = {
     data: function(tracks) {
       return defaultDataParser(tracks, 'energy');
     },
-    label: defaultTooltipLabel
+    tooltipLabel: defaultTooltipLabel,
+    fixedStepSize: 0.1
   },
   danceability: {
     data: function(tracks) {
@@ -50,6 +65,7 @@ var generators = {
 };
 
 var artistData = {};
+var currentArtistId = '';
 
 function getFeatures(artistId, selectedAttribute) {
   $('#search h2').append('<div class="big-spinner"></div>');
@@ -61,13 +77,12 @@ function getFeatures(artistId, selectedAttribute) {
     },
     success: function(data) {
       artistData = data;
+      currentArtistId = artistId;
       $('.big-spinner').remove();
       loadChart(artistData, selectedAttribute);
     }
   });
 }
-
-
 
 function getAlbumsHash(items) {
   var albumsHash = {};
@@ -114,14 +129,24 @@ function getData(artistId) {
     },
     success: function(data) {
       artistData = data
+      currentArtistId = artistId;
       loadChart(artistData, 'duration');
       $('.big-spinner').remove();
     }
   });
 }
 
+function loadAttributesChart(attributeName) {
+  if(artistData && artistData.tracks && artistData.tracks[0][attributeName]) {
+    loadChart(artistData, attributeName);
+  } else {
+    getFeatures(currentArtistId, attributeName);
+  }
+}
+
 function loadChart(tracks, attributeName) {
   resetCanvas();
+  tracks.tracks = defaultSorter(tracks.tracks, attributeName);
   $('#chartContainer').css('width', tracks.tracks.length * 20 + 'px');
   var ctx = document.getElementById('myChart');
   var myChart = new Chart(ctx, {
@@ -154,8 +179,8 @@ function loadChart(tracks, attributeName) {
           display: true,
           ticks: {
             beginAtZero: true,
-            fixedStepSize: 60000,
-            callback:generators[attributeName].tooltipLabel
+            fixedStepSize: generators[attributeName].fixedStepSize,
+            callback: generators[attributeName].tooltipLabel
           }
         }]
       }
@@ -194,5 +219,9 @@ $(document).ready(function() {
     select: function(event, ui) {
       getData(ui.item.id);
     }
+  });
+
+  $('.attribute').click(function(){
+    loadAttributesChart($(this).attr('id'));
   });
 });
