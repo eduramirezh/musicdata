@@ -260,7 +260,7 @@ function loadChart(tracks, attributeName) {
     type: 'bar',
     data: {
       labels: tracks.tracks.map(function(d) {
-        return d.track_name;
+        return [d.track_name, '(' + d.album_name + ')'];
       }),
       datasets: [{
         label: 'Songs' + attributeName,
