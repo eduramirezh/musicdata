@@ -7,7 +7,7 @@ import boto3
 from boto3.dynamodb.conditions import Key, Attr
 
 app = Chalice(app_name='tempo_analysis')
-app.debug = True
+# app.debug = True
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('Tracks')
 token = u'BQAttjXdNTLnYtJW7U8paJGGOm5Da47NARYfRRakk9MBbfRkYVvWCF9lmsJif56JNOz3fulSgACr78yP9TB7QO_ia77cdXkdZvjcFBU3R21QsFPkcXsxVVTWN1Qrz1HYGJuVEZjQ3Hro50EW'
@@ -16,9 +16,9 @@ scc = SpotifyClientCredentials(client_id='1e4f79dce8f342aa81a17b2f69244e82',
 spotify = spotipy.Spotify(client_credentials_manager=scc)
 
 def batch_iteration(iterable, n=1):
-    l = len(iterable)
-    for ndx in range(0, l, n):
-        yield iterable[ndx:min(ndx + n, l)]
+    length = len(iterable)
+    for ndx in range(0, length, n):
+        yield iterable[ndx:min(ndx + n, length)]
 
 def _sanitize(tracks):
     for i in range(len(tracks)):
@@ -78,22 +78,27 @@ def load_from_spotify(artist_id):
     while results['next']:
         results = spotify.next(results)
         albums.extend(results['items'])
+    full_albums = []
+    for albums_batch in batch_iteration(albums, 20):
+        album_ids = [album['id'] for album in albums_batch]
+        full_albums.extend(spotify.albums(album_ids)['albums'])
     tracks = []
-    for album in albums:
-        results = spotify.album(album['id'] + '/tracks?market=US&limit=50')
-        for i in range(len(results['items'])):
-            results['items'][i]['album_name'] = album['name']
-            if len(album['images']) > 0:
-                results['items'][i]['album_art'] = album['images'][-1]['url']
+    for i in range(len(full_albums)):
+        album_tracks = []
+        current_page = full_albums[i]['tracks']
+        while len(current_page['items']) > 0:
+            album_tracks.extend(current_page['items'])
+            if current_page['next']:
+                current_page = spotify.next(current_page)
             else:
-                results['items'][i]['album_art'] = ''
-        tracks.extend(results['items'])
-        while results['next']:
-            results = spotify.next(results)
-            for i in range(len(results['items'])):
-                results['items'][i]['album_name'] = album['name']
-                results['items'][i]['album_art'] = album['images'][-1]['url']
-            tracks.extend(results['items'])
+                current_page['items'] = []
+        for j in range(len(album_tracks)):
+            album_tracks[j]['album_name'] = full_albums[i]['name']
+            if len(full_albums[i]['images']) > 0:
+                album_tracks[j]['album_art'] = full_albums[i]['images'][-1]['url']
+            else:
+                album_tracks[j]['album_art'] = ''
+        tracks.extend(album_tracks)
     response = parse_tracks(tracks, artist_id)
     return response
 
@@ -139,8 +144,11 @@ def audio_features(artist_id):
     tracks = load_from_db(artist_id)
     if not tracks:
         return {'error': 'Artist not loaded'}
-    elif 'energy' not in tracks[0]:
-        features = load_features_from_spotify(tracks)
-        update(tracks, features)
-        tracks = load_from_db(artist_id)
+    #elif 'energy' not in tracks[0]:
+    else:
+        pending_tracks = [track for track in tracks if 'energy' not in track]
+        if len(pending_tracks) > 0:
+            features = load_features_from_spotify(pending_tracks)
+            update(pending_tracks, features)
+            tracks = load_from_db(artist_id)
     return {'tracks': tracks}

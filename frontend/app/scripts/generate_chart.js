@@ -8,6 +8,9 @@ var pitchClass = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B
 
 var defaultDataParser = function(tracks, attribute) {
   return tracks.tracks.map(function(track) {
+    if(!track[attribute]){
+      return 0;
+    }
     return Number(track[attribute]);
   });
 };
@@ -26,8 +29,8 @@ var modeDataParser = function(tracks) {
 
 function defaultSorter(tracks, attributeName){
   tracks.sort(function(a, b){
-    var numberA = Number(a[attributeName]);
-    var numberB = Number(b[attributeName]);
+    var numberA = a[attributeName] ? Number(a[attributeName]) : 0;
+    var numberB = b[attributeName] ? Number(b[attributeName]) : 0;
     if (numberA < numberB)
       return -1;
     if (numberA > numberB)
@@ -206,7 +209,7 @@ function getBarColorsByAlbum(items) {
 
 function resetCanvas() {
   $('#results').remove();
-  $('#resultsContainer').append('<div id="results"><h2>Tracks sorted by <span id="attributeTitle"></span></h2><div id="chartContainer"><canvas id="myChart"></canvas></div></div>');
+  $('#resultsContainer').append('<div id="results"><h2>Tracks sorted by <span id="attributeTitle"></span></h2><div id="chartContainer"><canvas id="myChart" height="500"></canvas></div></div>');
   $('#attributeSelection').css('display', 'block')
 }
 
@@ -228,8 +231,19 @@ function getData(artistId) {
 }
 
 function loadAttributesChart(attributeName) {
-  if(artistData && artistData.tracks && artistData.tracks[0][attributeName]) {
-    loadChart(artistData, attributeName);
+  if(artistData && artistData.tracks) {
+    var missing = false;
+    for(var i = 0; i < artistData.tracks.length; i++){
+      if(!(attributeName in artistData.tracks[i])){
+        missing = true;
+        break;
+      }
+    }
+    if(!missing){
+      loadChart(artistData, attributeName);
+    } else {
+      getFeatures(currentArtistId, attributeName);
+    }
   } else {
     getFeatures(currentArtistId, attributeName);
   }
@@ -238,7 +252,8 @@ function loadAttributesChart(attributeName) {
 function loadChart(tracks, attributeName) {
   resetCanvas();
   tracks.tracks = defaultSorter(tracks.tracks, attributeName);
-  $('#chartContainer').css('width', Math.max(tracks.tracks.length * 20, 200) + 'px');
+  $('#chartContainer').css('width', Math.max(tracks.tracks.length * 17, 200) + 'px');
+  $('canvas').attr('width', Math.max(tracks.tracks.length * 17, 200) + 'px');
   $('#attributeTitle').text(attributeName);
   var ctx = document.getElementById('myChart');
   var myChart = new Chart(ctx, {
@@ -255,6 +270,7 @@ function loadChart(tracks, attributeName) {
     },
     options: {
       maintainAspectRatio: false,
+      responsive: false,
       legend: {
         display: false
       },

@@ -26,7 +26,7 @@
     list-style-type: none;
     margin-top: 80px;
     padding: 0;
-    overflow: hidden;
+    overflow: scroll;
     background-color: #333333;
     float: bottom;
 }
