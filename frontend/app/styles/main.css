@@ -23,7 +23,7 @@ input {
 .big-spinner{
   height: 20px;
   display:block;
-  background:url('/images/ui-anim_basic_16x16.gif') no-repeat right center;
+  background:url('/images/ui-anim_basic_16x16.gif') no-repeat left center;
 }
 
 #attributeSelection {

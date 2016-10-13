@@ -161,7 +161,7 @@ var artistData = {};
 var currentArtistId = '';
 
 function getFeatures(artistId, selectedAttribute) {
-  $('#search h2').append('<div class="big-spinner"></div>');
+  $('#search h1').append('<div class="big-spinner"></div>');
   $.ajax({
     type: 'GET',
     url: 'https://5wnsefqb0a.execute-api.us-east-1.amazonaws.com/dev/artist/' + artistId + '/audio-features',
@@ -214,7 +214,7 @@ function resetCanvas() {
 }
 
 function getData(artistId) {
-  $('#search h2').append('<div class="big-spinner"></div>');
+  $('#search h1').append('<div class="big-spinner"></div>');
   $.ajax({
     type: 'GET',
     url: 'https://5wnsefqb0a.execute-api.us-east-1.amazonaws.com/dev/artist/' + artistId,
