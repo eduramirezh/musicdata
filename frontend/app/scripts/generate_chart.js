@@ -209,7 +209,7 @@ function getBarColorsByAlbum(items) {
 
 function resetCanvas() {
   $('#results').remove();
-  $('#resultsContainer').append('<div id="results"><h2>Tracks sorted by <span id="attributeTitle"></span></h2><div id="chartContainer"><canvas id="myChart" height="500"></canvas></div></div>');
+  $('#resultsContainer').append('<div id="results"><h4>Tracks sorted by <span id="attributeTitle"></span></h4><div id="chartContainer"><canvas id="myChart" height="500"></canvas></div></div>');
   $('#attributeSelection').css('display', 'block')
 }
 
