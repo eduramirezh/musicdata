@@ -106,7 +106,8 @@ def load_features_from_spotify(tracks):
     results = []
     for tracks_batch in batch_iteration(tracks, 100):
         ids = [track['track_id'] for track in tracks_batch]
-        results.extend(spotify.audio_features(ids))
+        features = spotify.audio_features(ids)
+        results.extend([feat for feat in features if feat is not None])
     return results
 
 
