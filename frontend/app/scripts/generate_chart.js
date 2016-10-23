@@ -4,11 +4,11 @@ function millisToMinutesAndSeconds(millis) {
   return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
 
-var pitchClass = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+var pitchClass = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 var defaultDataParser = function(tracks, attribute) {
   return tracks.tracks.map(function(track) {
-    if(!track[attribute]){
+    if (!track[attribute]) {
       return 0;
     }
     return Number(track[attribute]);
@@ -27,21 +27,23 @@ var modeDataParser = function(tracks) {
   });
 };
 
-function defaultSorter(tracks, attributeName){
-  tracks.sort(function(a, b){
+function defaultSorter(tracks, attributeName) {
+  tracks.sort(function(a, b) {
     var numberA = a[attributeName] ? Number(a[attributeName]) : 0;
     var numberB = b[attributeName] ? Number(b[attributeName]) : 0;
-    if (numberA < numberB)
+    if (numberA < numberB) {
       return -1;
-    if (numberA > numberB)
+    }
+    if (numberA > numberB) {
       return 1;
+    }
     return 0;
-  })
+  });
   return tracks;
 }
 
 var defaultTooltipLabel = function(tooltipItem) {
-  return tooltipItem.yLabel;
+  return (Math.round(tooltipItem.yLabel * 10000) / 100) + '%';
 };
 
 var generators = {
@@ -55,62 +57,90 @@ var generators = {
     ticksCallback: function(value) {
       return millisToMinutesAndSeconds(value);
     },
-    fixedStepSize: 60000
+    fixedStepSize: 60000,
+    min: 0,
+    max: undefined
   },
   energy: {
     data: function(tracks) {
       return defaultDataParser(tracks, 'energy');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return Math.round(a * 10) / 10;},
-    fixedStepSize: 0.1
+    ticksCallback: function(a) {
+      return (Math.round(a * 1000) / 10) + '%';
+    },
+    fixedStepSize: 0.1,
+    min: 0,
+    max: 1
   },
   speechiness: {
     data: function(tracks) {
       return defaultDataParser(tracks, 'speechiness');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return Math.round(a * 10) / 10;},
-    fixedStepSize: 0.1
+    ticksCallback: function(a) {
+      return (Math.round(a * 1000) / 10) + '%';
+    },
+    fixedStepSize: 0.1,
+    min: 0,
+    max: 1
   },
   acousticness: {
     data: function(tracks) {
       return defaultDataParser(tracks, 'acousticness');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return Math.round(a * 10) / 10;},
-    fixedStepSize: 0.1
+    ticksCallback: function(a) {
+      return (Math.round(a * 1000) / 10) + '%';
+    },
+    fixedStepSize: 0.1,
+    min: 0,
+    max: 1
   },
   danceability: {
     data: function(tracks) {
       return defaultDataParser(tracks, 'danceability');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return Math.round(a * 10) / 10;},
-    fixedStepSize: 0.1
+    ticksCallback: function(a) {
+      return (Math.round(a * 1000) / 10) + '%';
+    },
+    fixedStepSize: 0.1,
+    min: 0,
+    max: 1
   },
   tempo: {
     data: function(tracks) {
       return defaultDataParser(tracks, 'tempo');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return a;},
-    fixedStepSize: 10
+    ticksCallback: function(a) {
+      return a;
+    },
+    fixedStepSize: 10,
+    min: 0,
+    max: 210
   },
   instrumentalness: {
     data: function(tracks) {
       return defaultDataParser(tracks, 'instrumentalness');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return Math.round(a * 10) / 10;},
-    fixedStepSize: 0.1
+    ticksCallback: function(a) {
+      return (Math.round(a * 1000) / 10) + '%';
+    },
+    fixedStepSize: 0.1,
+    min: 0,
+    max: 1
   },
   key: {
     data: function(tracks) {
       return keyDataParser(tracks);
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return pitchClass[a-1];},
+    ticksCallback: function(a) {
+      return pitchClass[a - 1];
+    },
     fixedStepSize: 1
   },
   liveness: {
@@ -118,16 +148,20 @@ var generators = {
       return defaultDataParser(tracks, 'liveness');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return Math.round(a * 10) / 10;},
-    fixedStepSize: 0.1
+    ticksCallback: function(a) {
+      return (Math.round(a * 1000) / 10) + '%';
+    },
+    fixedStepSize: 0.1,
+    min: 0,
+    max: 1
   },
   mode: {
     data: function(tracks) {
       return modeDataParser(tracks);
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){
-      return a == 1 ? 'Minor' : 'Major';
+    ticksCallback: function(a) {
+      return a === 1 ? 'Minor' : 'Major';
     },
     fixedStepSize: 1
   },
@@ -136,7 +170,9 @@ var generators = {
       return defaultDataParser(tracks, 'time_signature');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return a + '/4';},
+    ticksCallback: function(a) {
+      return a + '/4';
+    },
     fixedStepSize: 1
   },
   loudness: {
@@ -144,7 +180,9 @@ var generators = {
       return defaultDataParser(tracks, 'loudness');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return a;},
+    ticksCallback: function(a) {
+      return a;
+    },
     fixedStepSize: 10
   },
   valence: {
@@ -152,8 +190,12 @@ var generators = {
       return defaultDataParser(tracks, 'valence');
     },
     tooltipLabel: defaultTooltipLabel,
-    ticksCallback: function(a){return Math.round(a * 10) / 10;},
-    fixedStepSize: 0.1
+    ticksCallback: function(a) {
+      return (Math.round(a * 1000) / 10) + '%';
+    },
+    fixedStepSize: 0.1,
+    min: 0,
+    max: 1
   }
 };
 
@@ -164,7 +206,7 @@ function getFeatures(artistId, selectedAttribute) {
   $('#search h1').append('<div class="big-spinner"></div>');
   $.ajax({
     type: 'GET',
-    url: 'https://5wnsefqb0a.execute-api.us-east-1.amazonaws.com/dev/artist/' + artistId + '/audio-features',
+    url: 'https://pr7hy9rhqg.execute-api.us-east-1.amazonaws.com/dev/artist/' + artistId + '/audio-features',
     headers: {
       'Content-Type': 'application/json'
     },
@@ -210,7 +252,7 @@ function getBarColorsByAlbum(items) {
 function resetCanvas() {
   $('#results').remove();
   $('#resultsContainer').append('<div id="results"><h4>Tracks sorted by <span id="attributeTitle"></span></h4><div id="chartContainer"><canvas id="myChart" height="500"></canvas></div></div>');
-  $('#attributeSelection').css('display', 'block')
+  $('#attributeSelection').css('display', 'block');
 }
 
 function getData(artistId) {
@@ -222,7 +264,7 @@ function getData(artistId) {
       'Content-Type': 'application/json'
     },
     success: function(data) {
-      artistData = data
+      artistData = data;
       currentArtistId = artistId;
       loadChart(artistData, 'duration');
       $('.big-spinner').remove();
@@ -231,18 +273,18 @@ function getData(artistId) {
 }
 
 function loadAttributesChart(attributeName) {
-  if(artistData && artistData.tracks) {
+  if (artistData && artistData.tracks) {
     var missing = false;
-    for(var i = 0; i < artistData.tracks.length; i++){
-      if(!(attributeName in artistData.tracks[i])){
+    for (var i = 0; i < artistData.tracks.length; i++) {
+      if (!(attributeName in artistData.tracks[i])) {
         missing = true;
         break;
       }
     }
-    if(!missing){
-      loadChart(artistData, attributeName);
-    } else {
+    if (missing) {
       getFeatures(currentArtistId, attributeName);
+    } else {
+      loadChart(artistData, attributeName);
     }
   } else {
     getFeatures(currentArtistId, attributeName);
@@ -287,6 +329,8 @@ function loadChart(tracks, attributeName) {
           display: true,
           ticks: {
             beginAtZero: true,
+            min: generators[attributeName].min,
+            max: generators[attributeName].max,
             fixedStepSize: generators[attributeName].fixedStepSize,
             callback: generators[attributeName].ticksCallback
           }
@@ -329,7 +373,7 @@ $(document).ready(function() {
     }
   });
 
-  $('.attribute').click(function(){
+  $('.attribute').click(function() {
     loadAttributesChart($(this).attr('id'));
   });
 });
