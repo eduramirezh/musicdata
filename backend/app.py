@@ -7,7 +7,7 @@ import boto3
 from boto3.dynamodb.conditions import Key, Attr
 
 app = Chalice(app_name='tempo_analysis')
-app.debug = True
+# app.debug = True
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('Tracks')
 credentials_table = dynamodb.Table('Credentials')

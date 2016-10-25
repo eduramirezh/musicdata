@@ -113,7 +113,9 @@ var generators = {
     data: function(tracks) {
       return defaultDataParser(tracks, 'tempo');
     },
-    tooltipLabel: defaultTooltipLabel,
+    tooltipLabel: function(tooltipItem) {
+      return (Math.round(tooltipItem.yLabel * 10) / 10) + 'bpm';
+    },
     ticksCallback: function(a) {
       return a;
     },
@@ -137,7 +139,9 @@ var generators = {
     data: function(tracks) {
       return keyDataParser(tracks);
     },
-    tooltipLabel: defaultTooltipLabel,
+    tooltipLabel: function(tooltipItem) {
+      return pitchClass[tooltipItem.yLabel - 1];
+    },
     ticksCallback: function(a) {
       return pitchClass[a - 1];
     },
@@ -179,7 +183,9 @@ var generators = {
     data: function(tracks) {
       return defaultDataParser(tracks, 'loudness');
     },
-    tooltipLabel: defaultTooltipLabel,
+    tooltipLabel: function(tooltipItem) {
+      return (Math.round(tooltipItem.yLabel * 10) / 10) + 'db';
+    },
     ticksCallback: function(a) {
       return a;
     },
@@ -267,6 +273,10 @@ function getData(artistId) {
       artistData = data;
       currentArtistId = artistId;
       loadChart(artistData, 'duration');
+      $('.big-spinner').remove();
+    },
+    error: function(xhr, status, errorThrown){
+      console.error('Something happened. Refresh and try again');
       $('.big-spinner').remove();
     }
   });
