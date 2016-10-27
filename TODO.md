@@ -1,2 +1,1 @@
  - Ajax error callback
- - factor to %
