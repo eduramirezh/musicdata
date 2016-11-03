@@ -270,7 +270,7 @@ function getBarColorsByAlbum(items) {
 
 function resetCanvas() {
   $('#results').remove();
-  $('#resultsContainer').append('<div id="results"><h4>Tracks sorted by <span id="attributeTitle"></span></h4><p id="attributeDescription"></p><div id="chartContainer"><canvas id="myChart" height="500"></canvas></div></div>');
+  $('#resultsContainer').append('<div id="results"><h4>Tracks sorted by <span id="attributeTitle"></span></h4><div id="chartContainer"><canvas id="myChart" height="500"></canvas></div></div>');
   $('#attributeSelection').css('display', 'block');
 }
 
@@ -399,5 +399,8 @@ $(document).ready(function() {
 
   $('.attribute').click(function() {
     loadAttributesChart($(this).attr('id'));
+  });
+  $('.attribute').hover(function() {
+    $('#attributeDescription').text(generators[$(this).attr('id')].description);
   });
 });
