@@ -20,6 +20,5 @@ the backend to get a specific artist's data.
 # TO DO
 
  - Improve UI design
- - Add each feature's description
  - Improve errors handling
  - Global analysis
