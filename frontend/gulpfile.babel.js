@@ -257,7 +257,7 @@ gulp.task('publish', function() {
   var publisher = awspublish.create({
     region: 'us-east-1',
     params: {
-      Bucket: 'songsdata.eduramirez.com'
+      Bucket: 'musicdata.eduramirez.com'
     }
   });
 
